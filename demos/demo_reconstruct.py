@@ -56,7 +56,10 @@ def main(args):
                 tform = torch.inverse(tform).transpose(1,2).to(device)
                 original_image = testdata[i]['original_image'][None, ...].to(device)
                 _, orig_visdict = deca.decode(codedict, render_orig=True, original_image=original_image, tform=tform)    
-                orig_visdict['inputs'] = original_image            
+                orig_visdict['inputs'] = original_image 
+            landmark_51 = opdict['landmarks3d_world'][:, 17:]
+            landmark_7 = landmark_51[:,[19, 22, 25, 28, 16, 31, 37]]
+            landmark_7 = landmark_7.cpu().numpy()           
 
         if args.saveDepth or args.saveKpt or args.saveObj or args.saveMat or args.saveImages:
             os.makedirs(os.path.join(savefolder, name), exist_ok=True)
@@ -70,6 +73,7 @@ def main(args):
             np.savetxt(os.path.join(savefolder, name, name + '_kpt3d.txt'), opdict['landmarks3d'][0].cpu().numpy())
         if args.saveObj:
             deca.save_obj(os.path.join(savefolder, name, name + '.obj'), opdict)
+            np.save(os.path.join(savefolder, name, name + '.npy'), landmark_7.reshape(7,3))
         if args.saveMat:
             opdict = util.dict_tensor2npy(opdict)
             savemat(os.path.join(savefolder, name, name + '.mat'), opdict)
